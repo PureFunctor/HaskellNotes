@@ -6,6 +6,9 @@
 module MonadsAndFriends.Adjunctions where
 
 
+import Control.Comonad
+
+
 -- An adjunction is a relationship between two functors `f`
 -- and `g` that states there is an isomorphism between:
 --
@@ -185,3 +188,41 @@ readerEx x = Reader $ readerEx_ x
 -- `rightAdjunct` function.
 envEx :: Env Input Extra -> Result
 envEx = rightAdjunct readerEx
+
+-- With this more complex example out of the way, what more do
+-- we have to know about adjunctions. Well, looking at the
+-- type signature of `leftAdjunct` and `rightAdjunct`:
+--
+-- leftAdjunct  :: (f a -> b) -> (a -> g b)
+-- rightAdjunct :: (a -> g b) -> (f a -> b)
+--
+-- We can define yet another relationship between these two;
+-- that is, the `leftAdjunct` morphism is the dual of the
+-- `rightAdjunct` morphism and vice-versa.
+
+-- For the following section, let's define a comonad instance
+-- for the `Env` functor.
+instance Comonad (Env e) where
+  extract :: Env e a -> a
+  extract = snd . runEnv
+
+  duplicate :: Env e a -> Env e (Env e a)
+  duplicate env@(Env e r) = Env e env
+
+  extend :: (Env e a -> b) -> Env e a -> Env e b
+  extend f a = let b = f a
+                   e = fst . runEnv $ a
+                in Env e b
+
+-- Given what we know about adjunctions and how they ultimately
+-- for duals between functors, what can be infer about the `Reader`
+-- monad and the `Env` comonad, given that they're adjunct with
+-- each other?
+--
+-- This ultimately proves that monads are duals of comonads and
+-- vice-versa.
+--
+-- If we look at `return :: a -> m a`, which has the comonadic
+-- dual called `extract :: w a -> a`, we can see that in the
+-- type signature of our adjunctions, namely, `a -> Reader e r`
+-- and `Env e a -> r`.
