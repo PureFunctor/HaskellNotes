@@ -73,13 +73,13 @@ instance Adjunction ((,) a) ((->) a) where
 -- The `Reader` monad helps us abstract over functions that
 -- take some read-only "environment" and produce some overall
 -- result.
-newtype Reader' e r = Reader { runReader :: e -> r }
+newtype Reader e r = Reader { runReader :: e -> r }
   deriving (Functor, Applicative, Monad)
 
 -- Given this, we can define functions to produce `Reader`s,
 -- allowing us to add more information. The most general form
 -- would be `a -> Reader e r`.
-extra :: Int -> Reader' [Int] Int
+extra :: Int -> Reader [Int] Int
 extra x = Reader \xs -> sum $ x : xs
 
 fourtyTwo :: Int
@@ -136,28 +136,28 @@ extra'' = uncurry extra'
 -- adjunction of the former?
 
 
--- First, let's define `Env'` which is a simple product type of `e`
+-- First, let's define `Env` which is a simple product type of `e`
 -- and `r`, that's also a `Functor`.
-data Env' e r = Env e r deriving (Functor)
+data Env e r = Env e r deriving (Functor)
 
--- We then define the "runner" function to extract an `Env'` into a
+-- We then define the "runner" function to extract an `Env` into a
 -- familar-looking tuple.
-runEnv' :: Env' e r -> (e, r)
-runEnv' (Env e r) = (e, r)
+runEnv :: Env e r -> (e, r)
+runEnv (Env e r) = (e, r)
 
--- As well as a "constructor" function to create an `Env'` from a
+-- As well as a "constructor" function to create an `Env` from a
 -- familiar-looking tuple.
-env' :: (e, r) -> Env' e r
+env' :: (e, r) -> Env e r
 env' (e, r) = Env e r
 
 -- After which, we'll  prove that there exists an `Adjunction` between
--- the functors `Env' e` and `Reader' e`. Remember that `Env' e` and
--- `Reader' e` simply abstracts over the functors `(,) e` and `(->) e`.
-instance Adjunction (Env' e) (Reader' e) where
+-- the functors `Env e` and `Reader e`. Remember that `Env e` and
+-- `Reader e` simply abstracts over the functors `(,) e` and `(->) e`.
+instance Adjunction (Env e) (Reader e) where
   leftAdjunct f a  = Reader \e -> f $ Env e a
   rightAdjunct f e = r e'
     where
-      (e', a) = runEnv' e
+      (e', a) = runEnv e
       r = runReader $ f a
 
 -- Let's define some types for convenience and clarity.
@@ -175,13 +175,13 @@ readerEx_ x xs = realToFrac . sum $ x : xs
 envEx_ :: (Input, Extra) -> Result
 envEx_ = rightAdjunct readerEx_
 
--- We can then use `Reader'` to abstract over the other half
+-- We can then use `Reader` to abstract over the other half
 -- of this function, giving us the full power of the `Reader`
 -- monad.
-readerEx :: Extra -> Reader' Input Result
+readerEx :: Extra -> Reader Input Result
 readerEx x = Reader $ readerEx_ x
 
 -- We're also able to find its adjunction by applying the
 -- `rightAdjunct` function.
-envEx :: Env' Input Extra -> Result
+envEx :: Env Input Extra -> Result
 envEx = rightAdjunct readerEx
