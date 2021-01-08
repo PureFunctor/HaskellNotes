@@ -1,0 +1,23 @@
+name: HaskellNotes
+version: 0.1.0.0
+
+license: BSD-3-Clause
+license-file: LICENSE
+copyright: "PureFunctor (c) 2021"
+
+author: "PureFunctor"
+maintainer: "purefunctor@gmail.com"
+
+github: PureFunctor/HaskellNotes
+
+extra-source-files:
+  - README.md
+
+dependencies:
+  - base
+
+library:
+  source-dirs: src
+
+verbatim:
+  cabal-version: 2.4
