@@ -16,7 +16,6 @@ module MonadsAndFriends.Adjunctions where
 -- `f a -> c` can easily be converted into `a -> g c`,
 -- while preserving information, and vice-versa.
 
-
 -- Adjunctions in Haskell can be defined through the
 -- `Adjunction` typeclass:
 class (Functor f, Functor g) => Adjunction f g | f -> g, g -> f
@@ -28,7 +27,6 @@ class (Functor f, Functor g) => Adjunction f g | f -> g, g -> f
 --
 -- leftAdjunct . rightAdjunct = id
 -- rightAdjunct . leftAdjunct = id
-
 
 -- One such example of an adjunction is that of the `(,) a`
 -- and `(->) a` functors, which is demonstrated by the `curry`,
@@ -48,7 +46,6 @@ class (Functor f, Functor g) => Adjunction f g | f -> g, g -> f
 --
 -- curry . uncurry = id
 -- uncurry . curry = id
---
 --
 -- With this in mind, we can define an `Adjunction` instance
 -- between `(,) a` and `(->) a`, given `curry` and `uncurry`:
@@ -135,7 +132,6 @@ extra'' = uncurry extra'
 -- for `a -> e -> r`, which is abstracted into `a -> Reader e r`,
 -- could we define such a data type that abstracts over the
 -- adjunction of the former?
-
 
 -- First, let's define `Env` which is a simple product type of `e`
 -- and `r`, that's also a `Functor`.
