@@ -137,18 +137,18 @@ extra'' = uncurry extra'
 -- adjunction of the former?
 
 -- First, let's define `Env` which is a simple product type of `e`
--- and `r`, that's also a `Functor`.
-data Env e r = Env e r deriving (Functor)
+-- and `a`, that's also a `Functor`.
+data Env e a = Env e a deriving (Functor)
 
 -- We then define the "runner" function to extract an `Env` into a
 -- familar-looking tuple.
-runEnv :: Env e r -> (e, r)
-runEnv (Env e r) = (e, r)
+runEnv :: Env e a -> (e, a)
+runEnv (Env e a) = (e, a)
 
 -- As well as a "constructor" function to create an `Env` from a
 -- familiar-looking tuple.
-env' :: (e, r) -> Env e r
-env' (e, r) = Env e r
+env' :: (e, a) -> Env e a
+env' (e, a) = Env e a
 
 -- After which, we'll  prove that there exists an `Adjunction` between
 -- the functors `Env e` and `Reader e`. Remember that `Env e` and
