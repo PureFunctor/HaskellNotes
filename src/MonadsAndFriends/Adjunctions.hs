@@ -21,7 +21,7 @@ import Control.Comonad
 
 -- Adjunctions in Haskell can be defined through the
 -- `Adjunction` typeclass:
-class (Functor f, Functor g) => Adjunction f g | f -> g, g -> f
+class (Functor f, Functor g) => Adjunction f g | f -> g
   where
     leftAdjunct  :: (f a -> b) -> (a -> g b)
     rightAdjunct :: (a -> g b) -> (f a -> b)
