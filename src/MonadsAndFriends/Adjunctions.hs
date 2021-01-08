@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -132,4 +133,55 @@ extra'' = uncurry extra'
 -- One question that can be asked is: if we found the adjunction
 -- for `a -> e -> r`, which is abstracted into `a -> Reader e r`,
 -- could we define such a data type that abstracts over the
--- adjunction of the former? TODO.
+-- adjunction of the former?
+
+
+-- First, let's define `Env'` which is a simple product type of `e`
+-- and `r`, that's also a `Functor`.
+data Env' e r = Env e r deriving (Functor)
+
+-- We then define the "runner" function to extract an `Env'` into a
+-- familar-looking tuple.
+runEnv' :: Env' e r -> (e, r)
+runEnv' (Env e r) = (e, r)
+
+-- As well as a "constructor" function to create an `Env'` from a
+-- familiar-looking tuple.
+env' :: (e, r) -> Env' e r
+env' (e, r) = Env e r
+
+-- After which, we'll  prove that there exists an `Adjunction` between
+-- the functors `Env' e` and `Reader' e`. Remember that `Env' e` and
+-- `Reader' e` simply abstracts over the functors `(,) e` and `(->) e`.
+instance Adjunction (Env' e) (Reader' e) where
+  leftAdjunct f a  = Reader \e -> f $ Env e a
+  rightAdjunct f e = r e'
+    where
+      (e', a) = runEnv' e
+      r = runReader $ f a
+
+-- Let's define some types for convenience and clarity.
+type Extra  = Int
+type Input  = [Int]
+type Result = Float
+
+-- We'll define a "reader-like" function with the following
+-- signature.
+readerEx_ :: Extra -> Input -> Result
+readerEx_ x xs = realToFrac . sum $ x : xs
+
+-- Naturally, we're able to find its adjunction by applying
+-- the `rightAdjunct` function.
+envEx_ :: (Input, Extra) -> Result
+envEx_ = rightAdjunct readerEx_
+
+-- We can then use `Reader'` to abstract over the other half
+-- of this function, giving us the full power of the `Reader`
+-- monad.
+readerEx :: Extra -> Reader' Input Result
+readerEx x = Reader $ readerEx_ x
+
+-- We're also able to find its adjunction by applying the
+-- `rightAdjunct` function.
+envEx :: Env' Input Extra -> Result
+envEx = rightAdjunct readerEx
