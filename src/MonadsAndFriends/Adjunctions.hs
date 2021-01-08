@@ -2,6 +2,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 module MonadsAndFriends.Adjunctions where
 
 
@@ -154,7 +155,10 @@ env' (e, r) = Env e r
 -- the functors `Env e` and `Reader e`. Remember that `Env e` and
 -- `Reader e` simply abstracts over the functors `(,) e` and `(->) e`.
 instance Adjunction (Env e) (Reader e) where
+  leftAdjunct :: (Env e a -> b) -> (a -> Reader e b)
   leftAdjunct f a  = Reader \e -> f $ Env e a
+
+  rightAdjunct :: (a -> Reader e b) -> (Env e a -> b)
   rightAdjunct f e = r e'
     where
       (e', a) = runEnv e
