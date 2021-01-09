@@ -322,3 +322,18 @@ stateEx' = undefined
 
 storeEx' :: StoreF Input Extra -> Result
 storeEx' = rightAdjunct stateEx'
+
+
+-- Final Intuitions
+--
+-- At the most basic level, the `(,) a` and `(->) a` functors form
+-- the simplest and most common adjunction.
+--
+-- Adjunctions form duals for each functor, as well as allowing
+-- them to be composed together to form structures akin to that
+-- of monad `return` and comonad `extract` with the `unit` and
+-- `counit` functions respectively.
+--
+-- To conclude, adjunctions between functors prove their duality,
+-- and the possible monadic instance of one functor implies the
+-- existence of the comonadic instance of the other.
