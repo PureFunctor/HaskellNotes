@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module MonadsAndFriends.Adjunctions where
 
 
@@ -21,7 +21,7 @@ import Control.Comonad
 
 -- Adjunctions in Haskell can be defined through the
 -- `Adjunction` typeclass:
-class (Functor f, Functor g) => Adjunction f g | f -> g
+class (Functor f, Functor g) => Adjunction f g
   where
     leftAdjunct  :: (f a -> b) -> (a -> g b)
     leftAdjunct f = fmap f . unit
