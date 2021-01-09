@@ -26,6 +26,12 @@ class (Functor f, Functor g) => Adjunction f g | f -> g
     leftAdjunct  :: (f a -> b) -> (a -> g b)
     rightAdjunct :: (a -> g b) -> (f a -> b)
 
+    unit :: a -> g (f a)
+    unit = leftAdjunct id
+
+    counit :: f (g a) -> a
+    counit = rightAdjunct id
+
 -- Instances also satisfy the following laws:
 --
 -- leftAdjunct . rightAdjunct = id
