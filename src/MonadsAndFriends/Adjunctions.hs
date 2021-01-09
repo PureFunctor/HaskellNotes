@@ -24,7 +24,10 @@ import Control.Comonad
 class (Functor f, Functor g) => Adjunction f g | f -> g
   where
     leftAdjunct  :: (f a -> b) -> (a -> g b)
+    leftAdjunct f = fmap f . unit
+
     rightAdjunct :: (a -> g b) -> (f a -> b)
+    rightAdjunct f = counit . fmap f
 
     unit :: a -> g (f a)
     unit = leftAdjunct id
