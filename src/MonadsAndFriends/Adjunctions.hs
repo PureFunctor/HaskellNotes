@@ -235,3 +235,90 @@ instance Comonad (Env e) where
 -- dual called `extract :: w a -> a`, we can see that in the
 -- type signature of our adjunctions, namely, `a -> Reader e r`
 -- and `Env e a -> r`.
+
+
+-- Now, let's take a look at a different way to go about adjunctions.
+
+-- Let's define some product type and some function type:
+data ProdF s a = ProdF s a
+  deriving (Functor)
+
+newtype ReadF s a = ReadF { runRead :: s -> a }
+  deriving (Functor)
+
+-- These two types mirror that of Haskell's `(,)` and `(->)` types,
+-- and naturally, we're also able to define an adjunction between
+-- them.
+instance Adjunction (ProdF s) (ReadF s) where
+  leftAdjunct f a = ReadF \s -> f $ ProdF s a
+  rightAdjunct f (ProdF s a) = runRead (f a) s
+
+readEx0 :: Extra -> ReadF Input Result
+readEx0 = undefined
+
+envEx0 :: ProdF Input Extra -> Result
+envEx0 = rightAdjunct readEx0
+
+-- The composition of these functors form the following types.
+--
+-- ReadF s (ProdF s a) ~ s -> (s × a)
+-- ProdF s (ReadF s a) ~ s × (s -> a)
+--
+-- Naturally, the `unit` and `counit` functions of `Adjunction`
+-- defines how information can be put inside and extracted from
+-- this composition.
+--
+-- unit   :: a -> ReadF s (ProdF s a)
+-- counit :: ProdF s (ReadF s a) -> a
+--
+-- This adjunction proves that there exists a monad that wraps
+-- around this functor composition, and that it adjunct with
+-- a comonad equivalent.
+--
+-- For convenience and familiarity, let's define a separate
+-- product type to be used for the monad and comonad.
+data PairF s a = PairF a s
+  deriving (Functor)
+
+-- After which we can finally define our monad
+newtype StateF s a = StateF { runStateF :: s -> PairF s a }
+  deriving (Functor)
+
+instance Applicative (StateF s) where
+  pure a = StateF \s -> PairF a s
+  f <*> b = StateF \s -> let (PairF f' s') = runStateF f s
+                          in runStateF (f' <$> b) s'
+
+instance Monad (StateF s) where
+  m >>= f = StateF \s -> let (PairF a s') = runStateF m s
+                          in runStateF (f a) s'
+
+-- and comonad.
+newtype StoreF s a = StoreF (PairF (s -> a) s)
+
+instance Functor (StoreF s) where
+  fmap f (StoreF (PairF s g)) = StoreF (PairF s (f . g))
+
+instance Comonad (StoreF s) where
+  extract :: StoreF s a -> a
+  extract (StoreF (PairF s f)) = f s
+
+  duplicate :: StoreF s a -> StoreF s (StoreF s a)
+  duplicate w@(StoreF (PairF s _)) = StoreF (PairF s (const w))
+
+  extend :: (StoreF s a -> b) -> StoreF s a -> StoreF s b
+  extend f a@(StoreF (PairF s _)) = StoreF (PairF s (\s -> f a))
+
+-- We can now finally prove the adjunction between these two types.
+instance Adjunction (StoreF s) (StateF s) where
+  leftAdjunct f a = StateF \s -> let b = f $ StoreF (PairF s (const a))
+                                  in PairF b s
+
+  rightAdjunct f (StoreF (PairF s g)) = let (PairF b _) = runStateF (f . g $ s) s
+                                         in b
+
+stateEx' :: Extra -> StateF Input Result
+stateEx' = undefined
+
+storeEx' :: StoreF Input Extra -> Result
+storeEx' = rightAdjunct stateEx'
